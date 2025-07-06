@@ -1,0 +1,60 @@
+{
+  "name": "obj-compose",
+  "type": "module",
+  "version": "0.0.1",
+  "description": "obj-compose: A utility to compose, merge, and reuse JSON-like objects with fragments and overrides",
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.js",
+  "scripts": {
+    "git": "pnpm version-patch && read -p \"Enter commit message: \" msg; git add .; git commit -m \"$msg\"; git push",
+    "version-patch": "npm version patch",
+    "prepublishOnly": "pnpm clean && pnpm lint && pnpm check-types && pnpm build",
+    "release": "npm publish --access public",
+    "test": "vitest",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint . --max-warnings 0",
+    "clean": "rm -rf dist",
+    "build": "pnpm vite build",
+    "dev": "pnpm vite build -w"
+  },
+  "keywords": [
+    "obj-compose",
+    "obj",
+    "object",
+    "compose",
+    "merge",
+    "fragments",
+    "reuse",
+    "json",
+    "typescript"
+  ],
+  "author": {
+    "name": "Estarlin R",
+    "email": "dev@estarlincito.com",
+    "url": "https://estarlincito.com"
+  },
+  "files": [
+    "LICENSE",
+    "README.md",
+    "dist"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/estarlincito/obj-compose#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/estarlincito/obj-compose.git"
+  },
+  "bugs": {
+    "url": "https://github.com/estarlincito/obj-compose/issues"
+  },
+  "devDependencies": {
+    "@estarlincito/eslint": "^1.9.0",
+    "@types/node": "^24.0.4",
+    "eslint": "^9.29.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^3.2.3"
+  }
+}
