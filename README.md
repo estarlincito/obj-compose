@@ -2,14 +2,16 @@
 
 > _“Merge your logic. Trust your types.”_
 
-**obj-compose** is a type-safe, override-friendly object composer for structured configuration and localization systems. Define a `base`, plug in reusable `fragments`, and override anything—statically or dynamically—with full TypeScript inference.
+**obj-compose** is a type-safe, override-friendly object composer for structured configuration and localization systems. Define a `base`, plug in reusable `fragments`, and override anything—statically or dynamically—with full TypeScript inference. You can also selectively pick or omit deep pieces from composed results.
 
 ## Features
 
 - 🧠 **Full type inference** for deeply nested objects
 - 🔁 **Composable** via base + fragments + overrides
-- ⚙️ **Dynamic overrides** with source access
-- 🔒 Works great for localization, form structures, config merging, etc.
+- ⚙️ **Dynamic overrides** with access to the merged source
+- ✂️ **Pick** specific deep values by path
+- ❌ **Omit** deep paths from objects safely
+- 🔒 Ideal for localization, form structures, config merging, and more
 
 ## Installation
 
@@ -24,7 +26,7 @@ pnpm add obj-compose
 ## Basic Usage
 
 ```ts
-import { compose, pick } from 'obj-compose';
+import { compose, pick, omit } from 'obj-compose';
 
 const result = compose({
   base: {
@@ -58,16 +60,13 @@ const result = compose({
   overrides: {
     signup: {
       form: {
-        fields: (sources) =>
-          pick(
-            [
-              'signup.form.fields.username',
-              'contact.form.fields.email',
-              'contact.form.fields.first-name',
-              'contact.form.fields.last-name',
-            ],
-            sources,
-          ),
+        fields: (merged) =>
+          pick(merged, [
+            'signup.form.fields.username',
+            'contact.form.fields.email',
+            'contact.form.fields.first-name',
+            'contact.form.fields.last-name',
+          ]),
       },
     },
   },
@@ -82,6 +81,10 @@ console.log(result.signup.form.fields);
   'last-name': 'Last name'
 }
 */
+
+// Example of omitting a deep path from the composed result
+const cleaned = omit(result, ['signup.form.validation.username']);
+// `cleaned.signup.form.validation` no longer has `username`
 ```
 
 ## When to Use
@@ -98,32 +101,32 @@ console.log(result.signup.form.fields);
 Composes a new object by merging:
 
 - `base`: main object
-- `fragments`: optional reusable pieces (e.g., shared sections)
-- `overrides`: optional static or dynamic overrides
+- `fragments`: optional reusable pieces (each must be a `JsonObject`)
+- `overrides`: optional static or dynamic overrides (can be objects or functions that receive the merged source)
 
-Everything is type-inferred automatically.
+Everything is type-inferred automatically, including nested structures and dynamic values.
 
 #### Types
 
 ```ts
 type ComposeOptions<TBase, TFragments> = {
   base: TBase;
-  fragments?: TFragments;
+  fragments?: TFragments; // record of JsonObject fragments
   overrides?: Overrides<TBase, TFragments>;
 };
 ```
 
-### `pick(paths, [base, fragments])`
+### `pick(source, paths)`
 
-Picks values from `base` and `fragments` using dot-paths.
+Picks values from a source object (typically the merged result of base + fragments) by dot-notation paths.
 
-Returns an object with keys as the **last segment** of the path.
+Returns a flat object whose keys are the **last segment** of each path.
 
 ```ts
-const picked = pick(
-  ['signup.form.fields.username', 'contact.form.fields.email'],
-  [base, fragments],
-);
+const picked = pick(result, [
+  'signup.form.fields.username',
+  'contact.form.fields.email',
+]);
 /*
 {
   username: 'Choose a username',
@@ -132,11 +135,31 @@ const picked = pick(
 */
 ```
 
+### `omit(source, paths)`
+
+Returns a deep-cloned version of `source` with the specified dot-notation paths removed.
+
+```ts
+const withoutValidation = omit(result, ['signup.form.validation.username']);
+/*
+{
+  signup: {
+    form: {
+      fields: { username: 'Choose a username', ... },
+      validation: {
+        // username is omitted here
+        // other validation entries remain
+      }
+    }
+  },
+  contact: { ... }
+}
+*/
+```
+
 ## Type Inference
 
-All types are inferred automatically, including deeply nested fields.
-
-You can manually annotate if needed:
+All types flow automatically. If you need explicitness:
 
 ```ts
 import type { ComposeOptions } from 'obj-compose';

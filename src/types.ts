@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable prettier/prettier */
 export type JsonPrimitive = string | number | boolean | null | undefined;
-export type JsonValue = JsonPrimitive | JsonObject | JsonValue[];
+export type JsonArray = JsonValue[];
+export type JsonValue = JsonPrimitive | JsonObject | JsonArray;
 export interface JsonObject {
   [key: string]: JsonValue;
 }
@@ -34,9 +35,9 @@ export type DeepPartialWithCallbacks<T, TBase, TFragments> =
         | (T[P] extends JsonObject
             ? DeepPartialWithCallbacks<T[P], TBase, TFragments>
             : T[P])
-        | ((sources: [TBase, TFragments]) => any);
+        | ((source: TBase & TFragments) => any);
     }
-  | ((sources: [TBase, TFragments]) => any);
+  | ((source: TBase & TFragments) => any);
 
 export type Overrides<
   TBase extends JsonObject,
@@ -69,6 +70,19 @@ export type ApplyOverrides<T, O> = O extends (...args: any[]) => any
   ? T
   : O;
 
+export type DeepOmit<
+  T,
+  Path extends string,
+> = Path extends `${infer Head}.${infer Tail}`
+  ? Head extends keyof T
+    ? {
+        [K in keyof T]: K extends Head ? DeepOmit<T[K], Tail> : T[K];
+      }
+    : T
+  : Path extends keyof T
+  ? Omit<T, Path>
+  : T;
+
 export type ComposedResult<
   TBase extends JsonObject,
   TFragments extends Record<string, JsonObject>,
@@ -76,14 +90,14 @@ export type ComposedResult<
 > = ApplyOverrides<TBase & TFragments, TOverrides>;
 
 /**
- * The options object used to compose a final configuration object by merging
- * a `base` object with optional `fragments` and applying optional `overrides`.
+ * Options for composing a base JSON object with named fragment pieces and optional overrides.
  *
- * This is the main type you can use to explicitly type the parameter of `compose()`
- * if you want to enforce structure or reuse it elsewhere.
+ * @template TBase - The shape of the base JSON object.
+ * @template TFragments - A record whose keys are fragment names and values are JSON objects to be merged/used alongside `base`.
  *
- * @template TBase - The base object that defines the main structure.
- * @template TFragments - Optional named fragments to merge into the base.
+ * @property {TBase} base - The primary JSON object to start from.
+ * @property {TFragments} [fragments] - Optional named fragments that can be composed with or applied to the base.
+ * @property {Overrides<TBase, TFragments>} [overrides] - Optional instructions to override or adjust properties between `base` and `fragments`.
  */
 export interface ComposeOptions<
   TBase extends JsonObject,

@@ -1,3 +1,4 @@
-export { compose } from './compose.js';
-export { pick } from './pick.js';
+export { compose } from './core/compose.js';
+export { omit } from './core/omit.js';
+export { pick } from './core/pick.js';
 export type { ComposeOptions } from './types.js';

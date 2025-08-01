@@ -1,6 +1,9 @@
 import type { JsonObject, JsonValue } from '@/types.js';
 
-export const get = (path: string, obj: JsonObject): JsonValue | undefined => {
+export const toPath = (
+  path: string,
+  obj: JsonObject,
+): JsonValue | undefined => {
   const parts = path.split('.');
   let current: JsonValue = obj;
 
